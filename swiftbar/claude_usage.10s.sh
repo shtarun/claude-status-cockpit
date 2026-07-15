@@ -85,8 +85,12 @@ img="$CACHE/rings_s${s_used}_w${w_used}${stale:+_stale}.png"
 [ -f "$img" ] || swift "$RENDERER" "$s_used" "$w_used" "$img" $stale 2>/dev/null
 
 if [ -f "$img" ]; then
+  # Rings only — NO title text. The menu bar next to the notch has been
+  # observed to tighten by 40+pt (Control Centre growth, new app icons);
+  # at 89pt with title text this item got notch-evicted twice. ~50pt always
+  # fits. The binding-limit countdown lives in the dropdown instead.
   b64="$(base64 < "$img" | tr -d '\n')"
-  echo "⟳${bind_reset} | image=$b64 color=$GREY font=Menlo size=12"
+  echo "| image=$b64"
 else
   # Fallback: compact text-only line if the renderer is unavailable (kept
   # narrow for the same notch reason as the title).
@@ -97,6 +101,7 @@ fi
 
 echo "---"
 echo "Claude usage${cur_acct:+ — $cur_acct}"
+echo "Binding limit resets in ${bind_reset} | font=Menlo"
 echo "Session (5h)  ${s_used}% used · resets ${s_reset} | font=Menlo"
 echo "Week (7d)     ${w_used}% used · resets ${w_reset} | font=Menlo"
 echo "data as of ${age_txt}${stale:+ (stale)} | color=$GREY size=11"

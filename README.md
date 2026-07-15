@@ -16,8 +16,8 @@ effort**.
 - Twin rings: **session (5h)** and **week (7d)** used-percentage, the number
   drawn inside each ring.
 - Calm, muted colors that escalate: sage `< 60%` → sand `60–84%` → **red `≥ 85%`**.
-- `⟳4h` next to the rings: compact reset countdown of whichever limit is
-  closer to exhaustion (full countdowns in the dropdown).
+- Dropdown shows the reset countdown of whichever limit is closer to
+  exhaustion, plus full per-window countdowns.
 - **Live, not stale**: data comes from the JSON Claude Code feeds its
   statusline on every update, cached to disk and read every 10 s.
 - **Account-aware**: the dropdown shows which account the numbers belong to.
@@ -25,8 +25,10 @@ effort**.
   up the new account as soon as any session reports.
 - Staleness handling: if no session has reported for 10+ minutes the rings
   turn grey and the dropdown says how old the data is.
-- **Notch-safe**: the item is kept ~89 pt wide so macOS doesn't hide it behind
-  the notch when a transient system icon appears.
+- **Notch-safe**: the menu bar item is image-only (~50 pt wide). On notched
+  MacBooks macOS silently hides the leftmost status item when the bar gets
+  tight — wider variants of this item got evicted in testing, this one
+  doesn't.
 
 **Terminal (Claude Code statusline)**
 - Single powerline strip: model name on a background colored by the current
