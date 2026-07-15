@@ -16,8 +16,9 @@ effort**.
 - Twin rings: **session (5h)** and **week (7d)** used-percentage, the number
   drawn inside each ring.
 - Calm, muted colors that escalate: sage `< 60%` → sand `60–84%` → **red `≥ 85%`**.
-- Dropdown shows the reset countdown of whichever limit is closer to
-  exhaustion, plus full per-window countdowns.
+- Reset countdowns flank the rings: session time-left on the left (`3h`),
+  week time-left on the right (`6d`); full-precision countdowns in the
+  dropdown.
 - **Live, not stale**: data comes from the JSON Claude Code feeds its
   statusline on every update, cached to disk and read every 10 s.
 - **Account-aware**: the dropdown shows which account the numbers belong to.
@@ -25,10 +26,11 @@ effort**.
   up the new account as soon as any session reports.
 - Staleness handling: if no session has reported for 10+ minutes the rings
   turn grey and the dropdown says how old the data is.
-- **Notch-safe**: the menu bar item is image-only (~50 pt wide). On notched
-  MacBooks macOS silently hides the leftmost status item when the bar gets
-  tight — wider variants of this item got evicted in testing, this one
-  doesn't.
+- **Notch-aware**: everything is drawn into one compact image (~61–69 pt).
+  On notched MacBooks macOS silently hides the leftmost status item when the
+  bar gets tight — an 89 pt variant of this item got evicted in testing, this
+  layout survives. If it ever vanishes on a very crowded bar, ⌘-drag it
+  further right once so another icon becomes the notch's sacrifice.
 
 **Terminal (Claude Code statusline)**
 - Single powerline strip: model name on a background colored by the current
@@ -116,9 +118,9 @@ what makes Claude Code emit the first usage report.
   `swift swiftbar/render_rings.swift 50 50 /tmp/t.png` to see why (usually
   missing Command Line Tools).
 
-Note: SwiftBar silently drops menu-bar images wider than ~100 px — the
-renderer deliberately produces an 88 px PNG. Keep it that way if you fork the
-drawing code.
+Note: if you fork the drawing code, always set the PNG's point size
+(`rep.size`) — without it a Retina PNG renders at double width and the item
+gets notch-evicted — and keep the total item width well under ~80 pt.
 
 ## Uninstall
 

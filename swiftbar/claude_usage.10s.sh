@@ -75,14 +75,14 @@ elif [ "$age" -lt 3600 ]; then age_txt="$(( age / 60 ))m ago"
 else age_txt="$(( age / 3600 ))h $(( (age % 3600) / 60 ))m ago"
 fi
 
-# Binding limit = the ring with HIGHER used %; its reset countdown is the title text.
-if [ "$s_used" -ge "$w_used" ]; then bind_reset="$(fmt_reset_short "$s_at")"; else bind_reset="$(fmt_reset_short "$w_at")"; fi
+# Short countdowns drawn inside the image: session LEFT of the rings, week RIGHT.
+s_short="$(fmt_reset_short "$s_at")"
+w_short="$(fmt_reset_short "$w_at")"
 
-# Ring image depends only on the two percentages + staleness, so the cache is
-# stable tick-to-tick. The compact PNG is ~88px wide so SwiftBar (which caps
-# menu-bar images at ~100px) will actually display it.
-img="$CACHE/rings_s${s_used}_w${w_used}${stale:+_stale}.png"
-[ -f "$img" ] || swift "$RENDERER" "$s_used" "$w_used" "$img" $stale 2>/dev/null
+# Ring image = percentages + short countdowns + staleness. Countdown churn is
+# at most once a minute; old PNGs are pruned daily above.
+img="$CACHE/rings_s${s_used}_w${w_used}_${s_short}_${w_short}${stale:+_stale}.png"
+[ -f "$img" ] || swift "$RENDERER" "$s_used" "$w_used" "$s_short" "$w_short" "$img" $stale 2>/dev/null
 
 if [ -f "$img" ]; then
   # Rings only — NO title text. The menu bar next to the notch has been
@@ -96,12 +96,11 @@ else
   # narrow for the same notch reason as the title).
   scol="#8FBAA0"; [ "$s_used" -ge 60 ] && scol="#D6C486"; [ "$s_used" -ge 85 ] && scol="#C4524F"
   [ -n "$stale" ] && scol="$GREY"
-  echo "${s_used}·${w_used}% ⟳${bind_reset} | color=$scol font=Menlo size=13"
+  echo "${s_short}·${s_used}·${w_used}%·${w_short} | color=$scol font=Menlo size=13"
 fi
 
 echo "---"
 echo "Claude usage${cur_acct:+ — $cur_acct}"
-echo "Binding limit resets in ${bind_reset} | font=Menlo"
 echo "Session (5h)  ${s_used}% used · resets ${s_reset} | font=Menlo"
 echo "Week (7d)     ${w_used}% used · resets ${w_reset} | font=Menlo"
 echo "data as of ${age_txt}${stale:+ (stale)} | color=$GREY size=11"

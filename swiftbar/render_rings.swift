@@ -1,34 +1,50 @@
 import AppKit
 
-// Compact twin-ring gauge for the SwiftBar menu bar item.
-// args: sessUsed weekUsed outPath [stale]   (percentages 0-100 = USED)
+// Compact twin-ring gauge for the SwiftBar menu bar item, with the session
+// reset countdown drawn LEFT of the rings and the week countdown RIGHT.
+// args: sessUsed weekUsed sessLeft weekLeft outPath [stale]
+//   sessUsed/weekUsed : 0-100 percentages USED
+//   sessLeft/weekLeft : preformatted short countdowns ("2h", "45m", "6d")
 //
-// IMPORTANT: SwiftBar 2.x only shows a menu-bar image up to ~100px WIDE.
-// This renderer keeps the PNG ~88px wide (44pt @2x) by putting each
-// percentage INSIDE its ring — no separate labels, no reset text.
-// The reset countdown is shown as title text by the plugin instead.
+// WIDTH BUDGET: on notched MacBooks macOS hides the leftmost status item
+// when the bar tightens; an 89pt item got evicted, a 60pt one survived.
+// This layout must stay ~<=70pt total. Keep fonts/rings small.
 let a = CommandLine.arguments
-guard a.count >= 4, let sess = Int(a[1]), let week = Int(a[2]) else {
-    FileHandle.standardError.write("usage: render_rings <sessUsed> <weekUsed> <out.png> [stale]\n".data(using: .utf8)!)
+guard a.count >= 6, let sess = Int(a[1]), let week = Int(a[2]) else {
+    FileHandle.standardError.write("usage: render_rings <sessUsed> <weekUsed> <sessLeft> <weekLeft> <out.png> [stale]\n".data(using: .utf8)!)
     exit(1)
 }
-let outPath = a[3]
-let stale = a.count >= 5 && a[4] == "stale"
+let sessLeft = a[3]
+let weekLeft = a[4]
+let outPath = a[5]
+let stale = a.count >= 7 && a[6] == "stale"
 
 let scale: CGFloat = 2.0
 let logicalH: CGFloat = 22
-let ring: CGFloat = 17     // ring diameter (pt)
+let ring: CGFloat = 16     // ring diameter (pt)
 let lineW: CGFloat = 2.5
-let gap: CGFloat = 6
-let pad: CGFloat = 2
-let W = pad + ring + gap + ring + pad          // 44pt -> 88px @2x (< 100px SwiftBar cap)
+let gap: CGFloat = 4       // between the two rings
+let textGap: CGFloat = 2   // between a countdown and its ring
+let pad: CGFloat = 1.5
 
+let grey = NSColor(srgbRed: 0x8A/255, green: 0x93/255, blue: 0xA0/255, alpha: 1)
 func colorFor(_ used: Int) -> NSColor {
-    if stale { return NSColor(srgbRed: 0x8A/255, green: 0x93/255, blue: 0xA0/255, alpha: 1) }           // grey
+    if stale { return grey }
     if used >= 85 { return NSColor(srgbRed: 0xC4/255, green: 0x52/255, blue: 0x4F/255, alpha: 1) }      // red
     if used >= 60 { return NSColor(srgbRed: 0xD6/255, green: 0xC4/255, blue: 0x86/255, alpha: 1) }      // sand
     return NSColor(srgbRed: 0x8F/255, green: 0xBA/255, blue: 0xA0/255, alpha: 1)                        // sage
 }
+
+let sideFont = NSFont.monospacedSystemFont(ofSize: 7, weight: .semibold)
+func sideAttrs(_ used: Int) -> [NSAttributedString.Key: Any] {
+    [.font: sideFont, .foregroundColor: stale ? grey : colorFor(used)]
+}
+let sessStr = NSAttributedString(string: sessLeft, attributes: sideAttrs(sess))
+let weekStr = NSAttributedString(string: weekLeft, attributes: sideAttrs(week))
+let sessW = ceil(sessStr.size().width)
+let weekW = ceil(weekStr.size().width)
+
+let W = pad + sessW + textGap + ring + gap + ring + textGap + weekW + pad
 
 let pxW = Int(W * scale), pxH = Int(logicalH * scale)
 let cs = CGColorSpaceCreateDeviceRGB()
@@ -61,7 +77,7 @@ func drawRing(cx: CGFloat, cy: CGFloat, used: Int) {
     }
     // percentage centered inside the ring (3-digit "100" gets a smaller font)
     let s = "\(clamped)"
-    let fsize: CGFloat = s.count >= 3 ? 6 : 8
+    let fsize: CGFloat = s.count >= 3 ? 5.5 : 7.5
     let attrs: [NSAttributedString.Key: Any] = [
         .font: NSFont.monospacedSystemFont(ofSize: fsize, weight: .semibold),
         .foregroundColor: colorFor(clamped)
@@ -71,13 +87,20 @@ func drawRing(cx: CGFloat, cy: CGFloat, used: Int) {
     str.draw(at: NSPoint(x: cx - sz.width/2, y: cy - sz.height/2))
 }
 
+func drawSide(_ str: NSAttributedString, x: CGFloat, cy: CGFloat) {
+    let sz = str.size()
+    str.draw(at: NSPoint(x: x, y: cy - sz.height/2))
+}
+
 let cy = logicalH/2
-drawRing(cx: pad + ring/2, cy: cy, used: sess)
-drawRing(cx: pad + ring + gap + ring/2, cy: cy, used: week)
+drawSide(sessStr, x: pad, cy: cy)
+drawRing(cx: pad + sessW + textGap + ring/2, cy: cy, used: sess)
+drawRing(cx: pad + sessW + textGap + ring + gap + ring/2, cy: cy, used: week)
+drawSide(weekStr, x: pad + sessW + textGap + ring + gap + ring + textGap, cy: cy)
 
 NSGraphicsContext.current = nil
 guard let img = ctx.makeImage() else { exit(1) }
 let rep = NSBitmapImageRep(cgImage: img)
-rep.size = NSSize(width: W, height: logicalH)
+rep.size = NSSize(width: W, height: logicalH)   // point size -> Retina @2x
 guard let png = rep.representation(using: .png, properties: [:]) else { exit(1) }
 do { try png.write(to: URL(fileURLWithPath: outPath)) } catch { exit(1) }
