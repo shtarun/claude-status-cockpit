@@ -20,12 +20,12 @@ let outPath = a[5]
 let stale = a.count >= 7 && a[6] == "stale"
 
 let scale: CGFloat = 2.0
-let logicalH: CGFloat = 22
-let ring: CGFloat = 16     // ring diameter (pt)
-let lineW: CGFloat = 2.5
-let gap: CGFloat = 4       // between the two rings
-let textGap: CGFloat = 2   // between a countdown and its ring
-let pad: CGFloat = 1.5
+let logicalH: CGFloat = 22  // NSStatusBar.system.thickness — the OS ceiling
+let ring: CGFloat = 18     // ring diameter (pt); 18 + stroke ≈ 21.5 of the 22
+let lineW: CGFloat = 3.0
+let gap: CGFloat = 3       // between the two rings
+let textGap: CGFloat = 1.5 // between a countdown and its ring
+let pad: CGFloat = 1
 
 let grey = NSColor(srgbRed: 0x8A/255, green: 0x93/255, blue: 0xA0/255, alpha: 1)
 func colorFor(_ used: Int) -> NSColor {
@@ -77,7 +77,7 @@ func drawRing(cx: CGFloat, cy: CGFloat, used: Int) {
     }
     // percentage centered inside the ring (3-digit "100" gets a smaller font)
     let s = "\(clamped)"
-    let fsize: CGFloat = s.count >= 3 ? 5.5 : 7.5
+    let fsize: CGFloat = s.count >= 3 ? 6.5 : 8.5
     let attrs: [NSAttributedString.Key: Any] = [
         .font: NSFont.monospacedSystemFont(ofSize: fsize, weight: .semibold),
         .foregroundColor: colorFor(clamped)

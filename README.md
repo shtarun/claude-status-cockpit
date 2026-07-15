@@ -1,4 +1,4 @@
-# claude-status-cockpit
+# claude-usage-rings
 
 **Live Claude Code usage in your macOS menu bar** — twin ring gauges for the
 5-hour session window and 7-day week window, colored by how much you've used,
@@ -75,8 +75,8 @@ reports, for exactly the account you're logged into.
 ## Install
 
 ```bash
-git clone https://github.com/shtarun/claude-status-cockpit.git
-cd claude-status-cockpit
+git clone https://github.com/shtarun/claude-usage-rings.git
+cd claude-usage-rings
 ./install.sh
 ```
 
